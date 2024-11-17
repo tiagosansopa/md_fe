@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ChatScreen extends StatelessWidget {
   final Map<String, dynamic> match;
@@ -7,8 +8,18 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = match['location'];
-    final dateTime = match['dateTime'];
+    final location = match['location'] ?? 'Sin lugar';
+    final dateTimeString = match['dateTime'];
+    DateTime? dateTime;
+
+    // Parsear la fecha de tipo String a DateTime
+    if (dateTimeString != null) {
+      try {
+        dateTime = DateTime.parse(dateTimeString);
+      } catch (e) {
+        print('Error al parsear la fecha: $e');
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -26,7 +37,9 @@ class ChatScreen extends StatelessWidget {
               children: [
                 Text('Lugar: $location', style: TextStyle(fontSize: 18)),
                 Text(
-                  'Fecha y Hora: ${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute}',
+                  dateTime != null
+                      ? 'Fecha y Hora: ${DateFormat.yMMMMEEEEd('es_ES').add_Hm().format(dateTime)}'
+                      : 'Fecha y Hora: Sin fecha',
                   style: TextStyle(fontSize: 16),
                 ),
               ],

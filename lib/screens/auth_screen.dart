@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import '../services/auth_service.dart';
 import 'main_screen.dart';
 
 class AuthScreen extends StatelessWidget {
@@ -10,20 +10,80 @@ class AuthScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2, // Dos pestañas: Log In y Register
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('Matchday MVP'),
-          bottom: TabBar(
-            tabs: [
-              Tab(text: 'Log In'),
-              Tab(text: 'Register'),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: [
+              SizedBox(height: 50), // Espacio superior
+              Center(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 100,
+                  width: 100,
+                ),
+              ),
+              SizedBox(height: 30),
+
+              // Tabs y contenido centrado
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TabBar(
+                      tabs: [
+                        Tab(text: 'Log In'),
+                        Tab(text: 'Register'),
+                      ],
+                    ),
+                    SizedBox(height: 20), // Espacio entre tabs y formularios
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          LogInForm(),
+                          RegisterForm(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Botones de redes sociales con espacio inferior
+              Column(
+                children: [
+                  Text('o continuar con'),
+                  SizedBox(height: 10.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          // Lógica para login con Facebook
+                        },
+                        icon: Icon(Icons.facebook),
+                        label: Text('Facebook'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue, // Facebook color
+                        ),
+                      ),
+                      SizedBox(width: 10.0),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          // Lógica para login con Google
+                        },
+                        icon: Icon(Icons.g_mobiledata),
+                        label: Text('Google'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red, // Google color
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 30), // Margen inferior para los botones
             ],
           ),
-        ),
-        body: TabBarView(
-          children: [
-            LogInForm(),
-            RegisterForm(),
-          ],
         ),
       ),
     );
@@ -43,19 +103,24 @@ class _LogInFormState extends State<LogInForm> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      // Llama al API de login
-      final url = Uri.parse('https://matchapi.uim.gt/api/login/');
+      final url = Uri.parse('https://matchapi.uim.gt/api/auth/login/');
       try {
         final response = await http.post(
           url,
-          body: {
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
             'username': _username,
             'password': _password,
-          },
+          }),
         );
 
         if (response.statusCode == 200) {
-          // Redirige a la pantalla principal si el inicio de sesión es exitoso
+          final data = jsonDecode(response.body);
+          await AuthService.saveTokens(data['access'], data['refresh']);
+
+          // Obtiene los datos del usuario después del login
+          await AuthService.fetchUserData(context);
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => MainScreen()),
           );
@@ -79,12 +144,13 @@ class _LogInFormState extends State<LogInForm> {
       child: Form(
         key: _formKey,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextFormField(
               decoration: InputDecoration(labelText: 'Username'),
               validator: (value) {
-                if (value == null) {
-                  return 'Enter a valid user!';
+                if (value == null || value.isEmpty) {
+                  return 'Enter a valid username!';
                 }
                 return null;
               },
@@ -92,6 +158,7 @@ class _LogInFormState extends State<LogInForm> {
                 _username = value!;
               },
             ),
+            SizedBox(height: 16),
             TextFormField(
               decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
@@ -105,7 +172,7 @@ class _LogInFormState extends State<LogInForm> {
                 _password = value!;
               },
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 32),
             ElevatedButton(
               onPressed: _submitForm,
               child: Text('Log In'),
@@ -132,7 +199,7 @@ class _RegisterFormState extends State<RegisterForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       // Llama al API de registro
-      final url = Uri.parse('https://matchapi.uim.gt/api/register/');
+      final url = Uri.parse('https://matchapi.uim.gt/api/auth/register/');
       try {
         final response = await http.post(
           url,
@@ -167,6 +234,7 @@ class _RegisterFormState extends State<RegisterForm> {
       child: Form(
         key: _formKey,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextFormField(
               decoration: InputDecoration(labelText: 'Email'),
@@ -181,6 +249,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 _email = value!;
               },
             ),
+            SizedBox(height: 16),
             TextFormField(
               decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
@@ -194,6 +263,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 _password = value!;
               },
             ),
+            SizedBox(height: 16),
             TextFormField(
               decoration: InputDecoration(labelText: 'Username'),
               validator: (value) {
@@ -206,7 +276,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 _username = value!;
               },
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 32),
             ElevatedButton(
               onPressed: _submitForm,
               child: Text('Register'),

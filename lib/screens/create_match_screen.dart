@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class CreateMatchScreen extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
   int _playerCount = 11;
   int _alignment = 1; // 1, 2 o 3
   List<int> _playerPositions = [];
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -52,15 +54,49 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
     }
   }
 
-  void _createMatch() {
-    Navigator.pop(
-      context,
-      {
-        'location': _location,
-        'dateTime': _selectedDateTime,
-        'playerCount': _playerCount,
-      },
-    );
+  Future<void> _createMatch() async {
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final matchData = {
+      "place": _location,
+      "date_time": _selectedDateTime.toIso8601String(),
+      "player_count": _playerCount,
+      "formation": _alignment.toString(),
+    };
+
+    try {
+      final response = await AuthService.sendRequest(
+        url: 'https://matchapi.uim.gt/api/matches/',
+        method: 'POST',
+        body: matchData,
+        headers: {
+          'Content-Type': 'application/json', // Especifica el tipo de contenido
+        },
+        context: context, // Para manejar errores de autenticación
+      );
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Partido creado exitosamente')),
+        );
+        Navigator.pop(context, matchData);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Error al crear el partido: ${response.body}')),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $error')),
+      );
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
   }
 
   @override
@@ -194,8 +230,10 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
             SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: _createMatch,
-                child: Text('Crear'),
+                onPressed: _isSubmitting ? null : _createMatch,
+                child: _isSubmitting
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text('Crear'),
               ),
             ),
           ],

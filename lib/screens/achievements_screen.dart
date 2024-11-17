@@ -1,22 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'tab_container_screen.dart';
 import 'profileform_screen.dart';
-import 'settings_screen.dart'; // Importar la pantalla de configuración
+import 'settings_screen.dart';
 
-class AchievementsScreen extends StatelessWidget {
+class AchievementsScreen extends StatefulWidget {
+  @override
+  _AchievementsScreenState createState() => _AchievementsScreenState();
+}
+
+class _AchievementsScreenState extends State<AchievementsScreen> {
+  String _firstName = '';
+  String _lastName = '';
+  String _username = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userDataString = prefs.getString('userData');
+    if (userDataString != null) {
+      final userData = jsonDecode(userDataString);
+      setState(() {
+        _firstName = userData['first_name'] ?? 'Nombre';
+        _lastName = userData['last_name'] ?? 'Apellido';
+        _username = userData['username'] ?? 'Usuario';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Achievements'),
+        title: Text(''),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings), // Icono de configuración
+            icon: Icon(Icons.settings),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SettingsScreen(), // Navegar a Settings
+                  builder: (context) => SettingsScreen(),
                 ),
               );
             },
@@ -28,10 +58,9 @@ class AchievementsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row con avatar y nombre
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey[200], // Fondo gris claro
+                color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(8.0),
               ),
               padding: EdgeInsets.all(16.0),
@@ -39,34 +68,47 @@ class AchievementsScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 40.0,
-                    backgroundImage: AssetImage(
-                        'assets/thumb_photo.png'), // Reemplaza con tu imagen
+                    backgroundImage: AssetImage('assets/thumb_photo.png'),
                   ),
                   SizedBox(width: 16.0),
-                  GestureDetector(
-                    onTap: () {
-                      // Navegar a ProfileScreen
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProfileFormScreen(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfileFormScreen(),
+                            ),
+                          );
+                          if (result == true) {
+                            // Si los datos fueron actualizados, recarga los datos del usuario
+                            _loadUserData();
+                          }
+                        },
+                        child: Text(
+                          "$_firstName $_lastName",
+                          style: TextStyle(
+                            fontSize: 24.0,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      );
-                    },
-                    child: Text(
-                      "Abraham Rodriguez",
-                      style: TextStyle(
-                        fontSize: 24.0,
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
+                      SizedBox(height: 4.0),
+                      Text(
+                        "@$_username",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
             SizedBox(height: 24.0),
-
-            // Contenido principal
             Expanded(
               child: TabContainerScreen(),
             ),
