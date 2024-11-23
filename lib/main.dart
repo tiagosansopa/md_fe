@@ -1,6 +1,6 @@
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/material.dart';
-import 'screens/auth_screen.dart'; // Importa la pantalla que creaste
+import 'package:matchday_mvp/screens/auth/welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: AuthScreen(), // Aquí defines la pantalla inicial
+      home: WelcomeScreen(), // Aquí defines la pantalla inicial
     );
   }
 }
