@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:matchday_mvp/screens/auth/welcome_screen.dart';
 import 'auth_screen.dart'; // Importar la pantalla de autenticación
 
 class SettingsScreen extends StatelessWidget {
@@ -19,7 +20,7 @@ class SettingsScreen extends StatelessWidget {
               onTap: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => AuthScreen()),
+                  MaterialPageRoute(builder: (context) => WelcomeScreen()),
                   (route) => false, // Remueve todas las rutas anteriores
                 );
               },

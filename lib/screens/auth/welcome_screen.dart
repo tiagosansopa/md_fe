@@ -32,6 +32,15 @@ class WelcomeScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(8.0), // Slightly rounded corners
+                ),
+                padding: EdgeInsets.symmetric(
+                    vertical: 16.0), // Increase vertical size
+                minimumSize: Size.fromHeight(50), // Full-width
+              ),
               child: Text('Get Started'),
             ),
             SizedBox(height: 20),

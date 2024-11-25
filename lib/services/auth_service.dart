@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 
 class AuthService {
   static const String baseUrl = 'https://matchapi.uim.gt/api/auth';
-  static const String loginUrl = '$baseUrl/login/';
   static const String refreshUrl = '$baseUrl/token/refresh/';
   static const String userUrl = 'https://matchapi.uim.gt/api/users/me/';
 
@@ -122,6 +121,44 @@ class AuthService {
         } else {
           if (context != null) logout(context);
         }
+      }
+
+      return response;
+    } catch (e) {
+      throw Exception('Error en la solicitud: $e');
+    }
+  }
+
+// Método genérico para enviar solicitudes HTTP sin manejo de token
+  static Future<http.Response> sendOpenRequest({
+    required String url,
+    required String method,
+    Map<String, String>? headers,
+    dynamic body,
+  }) async {
+    http.Response response;
+
+    try {
+      headers ??= {};
+
+      if (method == 'GET') {
+        response = await http.get(Uri.parse(url), headers: headers);
+      } else if (method == 'POST') {
+        response = await http.post(
+          Uri.parse(url),
+          headers: headers,
+          body: jsonEncode(body),
+        );
+      } else if (method == 'PATCH') {
+        response = await http.patch(
+          Uri.parse(url),
+          headers: headers,
+          body: jsonEncode(body),
+        );
+      } else if (method == 'DELETE') {
+        response = await http.delete(Uri.parse(url), headers: headers);
+      } else {
+        throw Exception('Método no soportado');
       }
 
       return response;

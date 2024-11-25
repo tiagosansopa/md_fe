@@ -100,9 +100,7 @@ class _FeedScreenState extends State<FeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Feed'),
-      ),
+      appBar: AppBar(),
       body: Column(
         children: [
           Expanded(
