@@ -21,11 +21,10 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
   double? _weight;
   String _weightUnit = 'kg';
   String _country = '';
-  String _disability = 'Ninguna';
+  String _disability = 'none';
 
   int? _userId;
-
-  DateTime _selectedDateTime = DateTime.now();
+  DateTime? _selectedDate;
 
   @override
   void initState() {
@@ -33,31 +32,21 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
     _loadUserData();
   }
 
-  void _pickDateTime() async {
+  Future<void> _pickDate() async {
+    DateTime initialDate = _selectedDate ?? DateTime(1990, 1, 1);
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _selectedDateTime,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
     );
 
     if (pickedDate != null) {
-      TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-      );
-
-      if (pickedTime != null) {
-        setState(() {
-          _selectedDateTime = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
-      }
+      setState(() {
+        _selectedDate = pickedDate;
+        _dateOfBirth =
+            "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+      });
     }
   }
 
@@ -72,21 +61,20 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
         _firstName = userData['first_name'] ?? '';
         _lastName = userData['last_name'] ?? '';
         _nickname = userData['nickname'] ?? '';
-        _dateOfBirth = userData['date_of_birth'] ?? '';
+        _dateOfBirth = userData['date_of_birth'] ?? '1990-01-01';
+        _selectedDate = DateTime.tryParse(_dateOfBirth);
         _gender = userData['gender'] == 'M'
             ? 'Masculino'
             : userData['gender'] == 'F'
                 ? 'Femenino'
                 : 'Otro';
-        // _height = userData['height'];
-        // _heightUnit = userData['height_unit'] ?? 'cm';
-        // _weight = userData['weight'];
-        // _weightUnit = userData['weight_unit'] ?? 'kg';
+        _height = userData['height'];
+        _heightUnit = userData['height_unit'] ?? 'cm';
+        _weight = userData['weight'];
+        _weightUnit = userData['weight_unit'] ?? 'kg';
         _country = userData['country'] ?? '';
-        _disability = userData['disability'] ?? 'Ninguna';
+        _disability = userData['disability'] ?? 'none';
       });
-      print("hola ");
-      print(userData['first_name']);
     }
   }
 
@@ -126,10 +114,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
             SnackBar(content: Text('Cambios guardados exitosamente')),
           );
 
-          // Actualiza datos locales
           await AuthService.fetchUserData(context);
-
-          // Regresa a la pantalla anterior
           Navigator.pop(context);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -152,46 +137,18 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
         title: Text('Editar Perfil'),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 55.0, vertical: 5.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
               // Nombre
               TextFormField(
                 initialValue: _firstName,
-                decoration: InputDecoration(
-                  labelText:
-                      'nombre', // Replace with 'Username' or other labels
-                  labelStyle:
-                      TextStyle(color: Colors.grey), // Customize label color
-                  hintText: 'Enter your nombre', // Optional hint
-                  hintStyle: TextStyle(
-                      color: Colors.grey.shade400), // Optional hint styling
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 15, horizontal: 20), // Adjust padding
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide:
-                        BorderSide(color: Colors.grey), // Default border color
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.grey.shade300), // Light border color
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.blue, width: 2.0), // Focused border color
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'Nombre'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Enter your name';
+                    return 'Ingrese su nombre';
                   }
                   return null;
                 },
@@ -202,35 +159,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               // Apellido
               TextFormField(
                 initialValue: _lastName,
-                decoration: InputDecoration(
-                  labelText:
-                      'Apellido', // Replace with 'Username' or other labels
-                  labelStyle:
-                      TextStyle(color: Colors.grey), // Customize label color
-                  hintText: 'Enter your apellido', // Optional hint
-                  hintStyle: TextStyle(
-                      color: Colors.grey.shade400), // Optional hint styling
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 15, horizontal: 20), // Adjust padding
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide:
-                        BorderSide(color: Colors.grey), // Default border color
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.grey.shade300), // Light border color
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.blue, width: 2.0), // Focused border color
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'Apellido'),
                 onSaved: (value) => _lastName = value!,
               ),
               SizedBox(height: 10),
@@ -238,44 +167,24 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               // Apodo
               TextFormField(
                 initialValue: _nickname,
-                decoration: InputDecoration(
-                  labelText: 'Apodo', // Replace with 'Username' or other labels
-                  labelStyle:
-                      TextStyle(color: Colors.grey), // Customize label color
-                  hintText: 'Enter your apodo', // Optional hint
-                  hintStyle: TextStyle(
-                      color: Colors.grey.shade400), // Optional hint styling
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 15, horizontal: 20), // Adjust padding
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide:
-                        BorderSide(color: Colors.grey), // Default border color
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.grey.shade300), // Light border color
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.blue, width: 2.0), // Focused border color
-                  ),
-                ),
+                decoration: InputDecoration(labelText: 'Apodo'),
                 onSaved: (value) => _nickname = value!,
               ),
               SizedBox(height: 10),
 
               // Cumpleaños
-              TextFormField(
-                initialValue: _dateOfBirth,
-                decoration:
-                    InputDecoration(labelText: 'Cumpleaños (YYYY-MM-DD)'),
-                onSaved: (value) => _dateOfBirth = value!,
+              GestureDetector(
+                onTap: _pickDate,
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    decoration: InputDecoration(labelText: 'Cumpleaños'),
+                    controller: TextEditingController(
+                      text: _selectedDate == null
+                          ? ''
+                          : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
+                    ),
+                  ),
+                ),
               ),
               SizedBox(height: 10),
 
@@ -296,44 +205,82 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               SizedBox(height: 10),
 
               // Altura
-              TextFormField(
-                initialValue: _height?.toString(),
-                decoration: InputDecoration(labelText: 'Altura ($_heightUnit)'),
-                keyboardType: TextInputType.number,
-                onSaved: (value) => _height = double.tryParse(value ?? ''),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _heightUnit = _heightUnit == 'cm' ? 'cm' : 'cm';
-                  });
-                },
-                child: Text('Cambiar unidad'),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: _height?.toString(),
+                      decoration:
+                          InputDecoration(labelText: 'Altura ($_heightUnit)'),
+                      keyboardType: TextInputType.number,
+                      onSaved: (value) =>
+                          _height = double.tryParse(value ?? ''),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  DropdownButton<String>(
+                    value: _heightUnit,
+                    items: ['cm', 'ft']
+                        .map((unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(unit),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _heightUnit = value!;
+                      });
+                    },
+                  ),
+                ],
               ),
               SizedBox(height: 10),
 
               // Peso
-              TextFormField(
-                initialValue: _weight?.toString(),
-                decoration: InputDecoration(labelText: 'Peso ($_weightUnit)'),
-                keyboardType: TextInputType.number,
-                onSaved: (value) => _weight = double.tryParse(value ?? ''),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _weightUnit = _weightUnit == 'kg' ? 'lb' : 'kg';
-                  });
-                },
-                child: Text('Cambiar unidad'),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: _weight?.toString(),
+                      decoration:
+                          InputDecoration(labelText: 'Peso ($_weightUnit)'),
+                      keyboardType: TextInputType.number,
+                      onSaved: (value) =>
+                          _weight = double.tryParse(value ?? ''),
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  DropdownButton<String>(
+                    value: _weightUnit,
+                    items: ['kg', 'lb']
+                        .map((unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(unit),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _weightUnit = value!;
+                      });
+                    },
+                  ),
+                ],
               ),
               SizedBox(height: 10),
 
               // País
-              TextFormField(
-                initialValue: _country,
+              DropdownButtonFormField(
+                value: _country,
                 decoration: InputDecoration(labelText: 'País'),
-                onSaved: (value) => _country = value!,
+                items: ['', 'Guatemala', 'USA', 'Canada', 'Mexico']
+                    .map((country) => DropdownMenuItem(
+                          value: country,
+                          child: Text(country),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  _country = value as String;
+                },
               ),
               SizedBox(height: 10),
 
@@ -357,12 +304,10 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(8.0), // Slightly rounded corners
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      vertical: 16.0), // Increase vertical size
-                  minimumSize: Size.fromHeight(50), // Full-width
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  minimumSize: Size.fromHeight(50),
                 ),
                 onPressed: _saveChanges,
                 child: Text('Guardar cambios'),
