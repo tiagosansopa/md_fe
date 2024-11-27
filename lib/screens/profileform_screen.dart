@@ -25,10 +25,40 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
 
   int? _userId;
 
+  DateTime _selectedDateTime = DateTime.now();
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  void _pickDateTime() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateTime,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          _selectedDateTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+        });
+      }
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -122,15 +152,49 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
         title: Text('Editar Perfil'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 55.0, vertical: 5.0),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
               // Nombre
               TextFormField(
                 initialValue: _firstName,
-                decoration: InputDecoration(labelText: 'Nombre'),
+                decoration: InputDecoration(
+                  labelText:
+                      'nombre', // Replace with 'Username' or other labels
+                  labelStyle:
+                      TextStyle(color: Colors.grey), // Customize label color
+                  hintText: 'Enter your nombre', // Optional hint
+                  hintStyle: TextStyle(
+                      color: Colors.grey.shade400), // Optional hint styling
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 15, horizontal: 20), // Adjust padding
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide:
+                        BorderSide(color: Colors.grey), // Default border color
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide: BorderSide(
+                        color: Colors.grey.shade300), // Light border color
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide: BorderSide(
+                        color: Colors.blue, width: 2.0), // Focused border color
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Enter your name';
+                  }
+                  return null;
+                },
                 onSaved: (value) => _firstName = value!,
               ),
               SizedBox(height: 10),
@@ -138,7 +202,35 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               // Apellido
               TextFormField(
                 initialValue: _lastName,
-                decoration: InputDecoration(labelText: 'Apellido'),
+                decoration: InputDecoration(
+                  labelText:
+                      'Apellido', // Replace with 'Username' or other labels
+                  labelStyle:
+                      TextStyle(color: Colors.grey), // Customize label color
+                  hintText: 'Enter your apellido', // Optional hint
+                  hintStyle: TextStyle(
+                      color: Colors.grey.shade400), // Optional hint styling
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 15, horizontal: 20), // Adjust padding
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide:
+                        BorderSide(color: Colors.grey), // Default border color
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide: BorderSide(
+                        color: Colors.grey.shade300), // Light border color
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide: BorderSide(
+                        color: Colors.blue, width: 2.0), // Focused border color
+                  ),
+                ),
                 onSaved: (value) => _lastName = value!,
               ),
               SizedBox(height: 10),
@@ -146,7 +238,34 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               // Apodo
               TextFormField(
                 initialValue: _nickname,
-                decoration: InputDecoration(labelText: 'Apodo'),
+                decoration: InputDecoration(
+                  labelText: 'Apodo', // Replace with 'Username' or other labels
+                  labelStyle:
+                      TextStyle(color: Colors.grey), // Customize label color
+                  hintText: 'Enter your apodo', // Optional hint
+                  hintStyle: TextStyle(
+                      color: Colors.grey.shade400), // Optional hint styling
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: 15, horizontal: 20), // Adjust padding
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide:
+                        BorderSide(color: Colors.grey), // Default border color
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide: BorderSide(
+                        color: Colors.grey.shade300), // Light border color
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(10.0), // Rounded corners
+                    borderSide: BorderSide(
+                        color: Colors.blue, width: 2.0), // Focused border color
+                  ),
+                ),
                 onSaved: (value) => _nickname = value!,
               ),
               SizedBox(height: 10),
@@ -236,6 +355,15 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
 
               // Botón para guardar cambios
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(8.0), // Slightly rounded corners
+                  ),
+                  padding: EdgeInsets.symmetric(
+                      vertical: 16.0), // Increase vertical size
+                  minimumSize: Size.fromHeight(50), // Full-width
+                ),
                 onPressed: _saveChanges,
                 child: Text('Guardar cambios'),
               ),
