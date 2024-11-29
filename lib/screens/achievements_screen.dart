@@ -68,7 +68,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 children: [
                   CircleAvatar(
                     radius: 40.0,
-                    backgroundImage: AssetImage('assets/thumb_photo.png'),
+                    backgroundImage: NetworkImage('https://picsum.photos/200'),
                   ),
                   SizedBox(width: 16.0),
                   Column(
