@@ -47,8 +47,7 @@ class _FeedScreenState extends State<FeedScreen> {
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error al cargar los matches: ${response.body}')),
+          SnackBar(content: Text('Error al cargar matches: ${response.body}')),
         );
       }
     } catch (error) {
