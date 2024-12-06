@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'add_discipline_screen.dart';
+import 'package:image_picker/image_picker.dart';
 
 class TabContainerScreen extends StatefulWidget {
   @override
@@ -17,6 +18,20 @@ class _TabContainerScreenState extends State<TabContainerScreen> {
   void initState() {
     super.initState();
     _fetchDisciplines(); // Fetch disciplines on init
+  }
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        // Handle the selected image (e.g., show it or upload it)
+        print('Selected image path: ${image.path}');
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
   }
 
   // Fetch disciplines from the API
@@ -89,15 +104,18 @@ class _TabContainerScreenState extends State<TabContainerScreen> {
         mainAxisSpacing: 8.0,
       ),
       itemBuilder: (context, index) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: Icon(
-            Icons.add,
-            size: 40.0,
-            color: Colors.grey[700],
+        return GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Icon(
+              Icons.add,
+              size: 40.0,
+              color: Colors.grey[700],
+            ),
           ),
         );
       },
