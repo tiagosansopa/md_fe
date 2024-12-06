@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import 'chat_screen.dart';
 
@@ -18,11 +19,67 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   int _playersJoined = 0;
   int? _selectedPlayer;
   bool _isJoining = false;
+  bool _showTeamA = true; // Toggle between Team A and Team B
+
+  final Map<int, List<List<Offset>>> _alignments = {
+    5: [
+      [
+        Offset(0.1, 0.2),
+        Offset(0.3, 0.15),
+        Offset(0.3, 0.3),
+        Offset(0.6, 0.15),
+        Offset(0.6, 0.3)
+      ], // Alignment 1
+      [
+        Offset(0.1, 0.2),
+        Offset(0.25, 0.15),
+        Offset(0.25, 0.3),
+        Offset(0.35, 0.2),
+        Offset(0.6, 0.2)
+      ], // Alignment 2
+      [
+        Offset(0.1, 0.2),
+        Offset(0.3, 0.2),
+        Offset(0.45, 0.15),
+        Offset(0.45, 0.3),
+        Offset(0.6, 0.2)
+      ], // Alignment 3
+    ],
+    7: [
+      [
+        Offset(0.1, 0.2),
+        Offset(0.2, 0.15),
+        Offset(0.2, 0.25),
+        Offset(0.45, 0.1),
+        Offset(0.45, 0.2),
+        Offset(0.45, 0.3),
+        Offset(0.7, 0.2)
+      ], // Alignment 1
+      [
+        Offset(0.1, 0.2),
+        Offset(0.2, 0.1),
+        Offset(0.2, 0.2),
+        Offset(0.2, 0.3),
+        Offset(0.45, 0.15),
+        Offset(0.45, 0.25),
+        Offset(0.7, 0.2)
+      ], // Alignment 2
+      [
+        Offset(0.1, 0.2),
+        Offset(0.2, 0.2),
+        Offset(0.45, 0.1),
+        Offset(0.45, 0.2),
+        Offset(0.45, 0.3),
+        Offset(0.7, 0.15),
+        Offset(0.7, 0.25),
+      ], // Alignment 3
+    ],
+  };
 
   @override
   void initState() {
     super.initState();
-    _fetchMatchDetails(); // Cargar detalles del partido
+    _fetchMatchDetails();
   }
 
   Future<void> _fetchMatchDetails() async {
@@ -57,20 +114,29 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final playerCount = _matchDetails?['player_count'] ?? 0;
+    final alignment = int.tryParse(_matchDetails?['formation'] ?? '1') ?? 1;
+
+    // Fetch positions for current playerCount and alignment
+    final alignmentsForPlayers = _alignments[playerCount] ?? [];
+    final positions = alignmentsForPlayers.isNotEmpty &&
+            alignment <= alignmentsForPlayers.length
+        ? alignmentsForPlayers[alignment - 1]
+        : [];
+
+    if (positions.isEmpty) {
       return Scaffold(
         appBar: AppBar(
           title: Text('Detalles del Partido'),
         ),
         body: Center(
-          child: CircularProgressIndicator(),
+          child: Text(
+            'No hay alineación disponible para esta configuración.',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
         ),
       );
     }
-
-    final location = _matchDetails?['place'] ?? 'Sin lugar';
-    final dateTime = _matchDetails?['dateTime'] ?? 'Sin fecha';
-    final totalPlayers = _matchDetails?['player_count'] ?? 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -82,9 +148,45 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Información del partido
-            Text('Lugar: $location', style: TextStyle(fontSize: 18)),
-            Text('Fecha y Hora: $dateTime', style: TextStyle(fontSize: 16)),
-            Text('Jugadores: $totalPlayers', style: TextStyle(fontSize: 16)),
+            Text('Lugar: ${_matchDetails?['place'] ?? 'Sin lugar'}',
+                style: TextStyle(fontSize: 18)),
+            Text(
+              'Fecha y Hora: ${DateFormat('EEEE, d MMM yyyy hh:mm a', 'es_ES').format(DateTime.parse(_matchDetails?['date_time'] ?? DateTime.now().toIso8601String()))}',
+              style: TextStyle(fontSize: 16),
+            ),
+            Text('Jugadores: $playerCount', style: TextStyle(fontSize: 16)),
+            SizedBox(height: 20),
+
+            // Botones para TEAM A y TEAM B
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _showTeamA = true;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        _showTeamA ? Colors.blue : Colors.grey.shade300,
+                  ),
+                  child: Text('TEAM A'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _showTeamA = false;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        !_showTeamA ? Colors.blue : Colors.grey.shade300,
+                  ),
+                  child: Text('TEAM B'),
+                ),
+              ],
+            ),
             SizedBox(height: 20),
 
             // Mapa con alineación
@@ -98,37 +200,41 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                       height: double.infinity,
                     ),
                   ),
-                  for (int i = 0; i < totalPlayers; i++)
+                  for (int i = 0; i < positions.length; i++)
                     Positioned(
-                      top: (i % 2 == 0 ? 100 : 200) + (i * 10),
-                      left: 50.0 + (i * 20.0),
-                      child: GestureDetector(
-                        onTap: !_isJoining
-                            ? null
-                            : () {
-                                setState(() {
-                                  _selectedPlayer = i;
-                                });
-                              },
-                        child: Icon(
-                          Icons.person,
-                          size: 30,
-                          color: _selectedPlayer == i
-                              ? Colors.green
-                              : (i < _playersJoined
-                                  ? Colors.red
-                                  : Colors.white),
-                        ),
+                      top: positions[i].dy *
+                          MediaQuery.of(context).size.height *
+                          0.8, // Adjusted to fit field size
+                      left: positions[i].dx *
+                          MediaQuery.of(context).size.width *
+                          0.8, // Adjusted to fit field size
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.person_pin_circle_rounded,
+                            size: 30,
+                            color: _showTeamA ? Colors.black : Colors.yellow,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            '${i + 1}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: _showTeamA ? Colors.black : Colors.yellow,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 ],
               ),
             ),
 
-            // Jugadores inscritos y botón unirme/enviar
+            // Botón Unirme
             SizedBox(height: 20),
             Text(
-              'Jugadores inscritos: $_playersJoined/$totalPlayers',
+              'Jugadores inscritos: $_playersJoined/$playerCount',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 10),
@@ -153,14 +259,16 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
                     );
                   }
                 },
-                child: Text(_isJoining
-                    ? (_selectedPlayer == null ? 'Selecciona' : 'Enviar')
-                    : 'Unirme'),
+                child: Text(
+                  _isJoining
+                      ? (_selectedPlayer == null ? 'Selecciona' : 'Enviar')
+                      : 'Unirme',
+                ),
               ),
             ),
             SizedBox(height: 20),
 
-            // Botón de chat
+            // Botón de Chat
             Center(
               child: ElevatedButton(
                 onPressed: () {

@@ -9,22 +9,64 @@ class CreateMatchScreen extends StatefulWidget {
 class _CreateMatchScreenState extends State<CreateMatchScreen> {
   String _location = '';
   DateTime _selectedDateTime = DateTime.now();
-  int _playerCount = 11;
-  int _alignment = 1; // 1, 2 o 3
-  List<int> _playerPositions = [];
+  int _playerCount = 5;
+  int _alignment = 1; // 1, 2, or 3
   bool _isSubmitting = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _updatePlayerPositions(); // Inicializa posiciones
-  }
-
-  void _updatePlayerPositions() {
-    setState(() {
-      _playerPositions = List.generate(_playerCount, (index) => index + 1);
-    });
-  }
+  final Map<int, List<List<Offset>>> _alignments = {
+    5: [
+      [
+        Offset(0.1, 0.2),
+        Offset(0.3, 0.15),
+        Offset(0.3, 0.3),
+        Offset(0.6, 0.15),
+        Offset(0.6, 0.3)
+      ], // Alignment 1
+      [
+        Offset(0.1, 0.2),
+        Offset(0.25, 0.15),
+        Offset(0.25, 0.3),
+        Offset(0.35, 0.2),
+        Offset(0.6, 0.2)
+      ], // Alignment 2
+      [
+        Offset(0.1, 0.2),
+        Offset(0.3, 0.2),
+        Offset(0.45, 0.15),
+        Offset(0.45, 0.3),
+        Offset(0.6, 0.2)
+      ], // Alignment 3
+    ],
+    7: [
+      [
+        Offset(0.1, 0.2),
+        Offset(0.2, 0.15),
+        Offset(0.2, 0.25),
+        Offset(0.45, 0.1),
+        Offset(0.45, 0.2),
+        Offset(0.45, 0.3),
+        Offset(0.7, 0.2)
+      ], // Alignment 1
+      [
+        Offset(0.1, 0.2),
+        Offset(0.2, 0.1),
+        Offset(0.2, 0.2),
+        Offset(0.2, 0.3),
+        Offset(0.45, 0.15),
+        Offset(0.45, 0.25),
+        Offset(0.7, 0.2)
+      ], // Alignment 2
+      [
+        Offset(0.1, 0.2),
+        Offset(0.2, 0.2),
+        Offset(0.45, 0.1),
+        Offset(0.45, 0.2),
+        Offset(0.45, 0.3),
+        Offset(0.7, 0.15),
+        Offset(0.7, 0.25),
+      ], // Alignment 3
+    ],
+  };
 
   void _pickDateTime() async {
     DateTime? pickedDate = await showDatePicker(
@@ -72,9 +114,9 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
         method: 'POST',
         body: matchData,
         headers: {
-          'Content-Type': 'application/json', // Especifica el tipo de contenido
+          'Content-Type': 'application/json',
         },
-        context: context, // Para manejar errores de autenticación
+        context: context,
       );
 
       if (response.statusCode == 201) {
@@ -101,6 +143,12 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final alignmentsForPlayers = _alignments[_playerCount] ??
+        []; // Fetch alignments for current player count
+    final positions = alignmentsForPlayers.isNotEmpty
+        ? alignmentsForPlayers[_alignment - 1]
+        : [];
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Crear Partido'),
@@ -123,9 +171,7 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
                 ),
                 IconButton(
                   icon: Icon(Icons.location_pin),
-                  onPressed: () {
-                    // Agregar lógica de coordenadas más adelante
-                  },
+                  onPressed: () {},
                 ),
               ],
             ),
@@ -159,7 +205,7 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
                 Spacer(),
                 DropdownButton<int>(
                   value: _playerCount,
-                  items: [5, 7, 9, 11]
+                  items: [5, 7, 11]
                       .map((count) => DropdownMenuItem<int>(
                             value: count,
                             child: Text('$count'),
@@ -168,7 +214,8 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
                   onChanged: (value) {
                     setState(() {
                       _playerCount = value!;
-                      _updatePlayerPositions();
+                      _alignment =
+                          1; // Reset to first alignment when player count changes
                     });
                   },
                 ),
@@ -211,16 +258,20 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
                       height: double.infinity,
                     ),
                   ),
-                  for (int i = 0; i < _playerCount; i++)
+                  for (int i = 0; i < positions.length; i++)
                     Positioned(
-                      top: (i % 2 == 0 ? 100 : 200) +
-                          (_alignment == 1
-                              ? 10
-                              : _alignment == 2
-                                  ? 20
-                                  : 30),
-                      left: 50.0 + (i * 20.0),
-                      child: Icon(Icons.person, size: 24, color: Colors.blue),
+                      top: positions[i].dy * MediaQuery.of(context).size.height,
+                      left: positions[i].dx * MediaQuery.of(context).size.width,
+                      child: Icon(Icons.person_pin_rounded,
+                          size: 30, color: Colors.white),
+                      //     Text(
+                      //   '${i + 1}', // Display the index starting from 1
+                      //   style: TextStyle(
+                      //     fontSize: 16,
+                      //     color: Colors.white, // Match the icon color
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // )
                     ),
                 ],
               ),
