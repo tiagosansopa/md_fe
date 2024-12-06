@@ -11,14 +11,15 @@ class ProfileFormScreen extends StatefulWidget {
 class _ProfileFormScreenState extends State<ProfileFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String _firstName = '';
-  String _lastName = '';
-  String _nickname = '';
-  String _dateOfBirth = '';
+  late TextEditingController _firstNameController = TextEditingController();
+  late TextEditingController _lastNameController = TextEditingController();
+  late TextEditingController _nicknameController = TextEditingController();
+  late TextEditingController _dateOfBirthController = TextEditingController();
+  late TextEditingController _heightController = TextEditingController();
+  late TextEditingController _weightController = TextEditingController();
+
   String _gender = 'Masculino';
-  double? _height;
   String _heightUnit = 'cm';
-  double? _weight;
   String _weightUnit = 'kg';
   String _country = '';
   String _disability = 'none';
@@ -30,6 +31,17 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _nicknameController.dispose();
+    _dateOfBirthController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
   }
 
   Future<void> _pickDate() async {
@@ -44,7 +56,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
     if (pickedDate != null) {
       setState(() {
         _selectedDate = pickedDate;
-        _dateOfBirth =
+        _dateOfBirthController.text =
             "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
       });
     }
@@ -56,21 +68,22 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
 
     if (userDataString != null) {
       final userData = jsonDecode(userDataString);
+
       setState(() {
         _userId = userData['id'];
-        _firstName = userData['first_name'] ?? '';
-        _lastName = userData['last_name'] ?? '';
-        _nickname = userData['nickname'] ?? '';
-        _dateOfBirth = userData['date_of_birth'] ?? '1990-01-01';
-        _selectedDate = DateTime.tryParse(_dateOfBirth);
+        _firstNameController.text = userData['first_name'] ?? '';
+        _lastNameController.text = userData['last_name'] ?? '';
+        _nicknameController.text = userData['nickname'] ?? '';
+        _dateOfBirthController.text = userData['date_of_birth'] ?? '1990-01-01';
+        _selectedDate = DateTime.tryParse(userData['date_of_birth'] ?? '');
         _gender = userData['gender'] == 'M'
             ? 'Masculino'
             : userData['gender'] == 'F'
                 ? 'Femenino'
                 : 'Otro';
-        _height = userData['height'];
+        _heightController.text = userData['height']?.toString() ?? '';
         _heightUnit = userData['height_unit'] ?? 'cm';
-        _weight = userData['weight'];
+        _weightController.text = userData['weight']?.toString() ?? '';
         _weightUnit = userData['weight_unit'] ?? 'kg';
         _country = userData['country'] ?? '';
         _disability = userData['disability'] ?? 'none';
@@ -78,23 +91,43 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
     }
   }
 
+  InputDecoration _inputDecoration(String label, String hintText) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.grey),
+      hintText: hintText,
+      hintStyle: TextStyle(color: Colors.grey.shade400),
+      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        borderSide: BorderSide(color: Colors.blue, width: 2.0),
+      ),
+    );
+  }
+
   Future<void> _saveChanges() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
       final userData = {
-        'first_name': _firstName,
-        'last_name': _lastName,
-        'nickname': _nickname,
-        'date_of_birth': _dateOfBirth,
+        'first_name': _firstNameController.text,
+        'last_name': _lastNameController.text,
+        'nickname': _nicknameController.text,
+        'date_of_birth': _dateOfBirthController.text,
         'gender': _gender == 'Masculino'
             ? 'M'
             : _gender == 'Femenino'
                 ? 'F'
                 : 'O',
-        'height': _height,
+        'height': double.tryParse(_heightController.text),
         'height_unit': _heightUnit,
-        'weight': _weight,
+        'weight': double.tryParse(_weightController.text),
         'weight_unit': _weightUnit,
         'country': _country,
         'disability': _disability,
@@ -142,56 +175,37 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              // Nombre
               TextFormField(
-                initialValue: _firstName,
-                decoration: InputDecoration(labelText: 'Nombre'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Ingrese su nombre';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _firstName = value!,
+                controller: _firstNameController,
+                decoration: _inputDecoration('Nombre', 'Ingrese su nombre'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ingrese su nombre' : null,
               ),
               SizedBox(height: 10),
-
-              // Apellido
               TextFormField(
-                initialValue: _lastName,
-                decoration: InputDecoration(labelText: 'Apellido'),
-                onSaved: (value) => _lastName = value!,
+                controller: _lastNameController,
+                decoration: _inputDecoration('Apellido', 'Ingrese su apellido'),
               ),
               SizedBox(height: 10),
-
-              // Apodo
               TextFormField(
-                initialValue: _nickname,
-                decoration: InputDecoration(labelText: 'Apodo'),
-                onSaved: (value) => _nickname = value!,
+                controller: _nicknameController,
+                decoration: _inputDecoration('Apodo', 'Ingrese su apodo'),
               ),
               SizedBox(height: 10),
-
-              // Cumpleaños
               GestureDetector(
                 onTap: _pickDate,
                 child: AbsorbPointer(
                   child: TextFormField(
-                    decoration: InputDecoration(labelText: 'Cumpleaños'),
-                    controller: TextEditingController(
-                      text: _selectedDate == null
-                          ? ''
-                          : "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}",
-                    ),
+                    controller: _dateOfBirthController,
+                    decoration: _inputDecoration(
+                        'Cumpleaños', 'Seleccione su fecha de nacimiento'),
                   ),
                 ),
               ),
               SizedBox(height: 10),
-
-              // Género
               DropdownButtonFormField(
                 value: _gender,
-                decoration: InputDecoration(labelText: 'Género'),
+                decoration: _inputDecoration('Género', ''),
                 items: ['Masculino', 'Femenino', 'Otro']
                     .map((gender) => DropdownMenuItem(
                           value: gender,
@@ -203,18 +217,14 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                 },
               ),
               SizedBox(height: 10),
-
-              // Altura
               Row(
                 children: [
                   Expanded(
                     child: TextFormField(
-                      initialValue: _height?.toString(),
+                      controller: _heightController,
                       decoration:
-                          InputDecoration(labelText: 'Altura ($_heightUnit)'),
+                          _inputDecoration('Altura', 'Ingrese su altura'),
                       keyboardType: TextInputType.number,
-                      onSaved: (value) =>
-                          _height = double.tryParse(value ?? ''),
                     ),
                   ),
                   SizedBox(width: 10),
@@ -235,18 +245,13 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                 ],
               ),
               SizedBox(height: 10),
-
-              // Peso
               Row(
                 children: [
                   Expanded(
                     child: TextFormField(
-                      initialValue: _weight?.toString(),
-                      decoration:
-                          InputDecoration(labelText: 'Peso ($_weightUnit)'),
+                      controller: _weightController,
+                      decoration: _inputDecoration('Peso', 'Ingrese su peso'),
                       keyboardType: TextInputType.number,
-                      onSaved: (value) =>
-                          _weight = double.tryParse(value ?? ''),
                     ),
                   ),
                   SizedBox(width: 10),
@@ -267,11 +272,9 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                 ],
               ),
               SizedBox(height: 10),
-
-              // País
               DropdownButtonFormField(
                 value: _country,
-                decoration: InputDecoration(labelText: 'País'),
+                decoration: _inputDecoration('País', 'Seleccione su país'),
                 items: ['', 'Guatemala', 'USA', 'Canada', 'Mexico']
                     .map((country) => DropdownMenuItem(
                           value: country,
@@ -283,11 +286,10 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                 },
               ),
               SizedBox(height: 10),
-
-              // Incapacidad
               DropdownButtonFormField(
                 value: _disability,
-                decoration: InputDecoration(labelText: 'Incapacidad'),
+                decoration: _inputDecoration(
+                    'Incapacidad', 'Seleccione su tipo de incapacidad'),
                 items: ['none', 'sight_impaired', 'asthma']
                     .map((disability) => DropdownMenuItem(
                           value: disability,
@@ -299,16 +301,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
                 },
               ),
               SizedBox(height: 20),
-
-              // Botón para guardar cambios
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  minimumSize: Size.fromHeight(50),
-                ),
                 onPressed: _saveChanges,
                 child: Text('Guardar cambios'),
               ),

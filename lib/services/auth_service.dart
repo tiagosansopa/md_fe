@@ -18,6 +18,8 @@ class AuthService {
   // Guarda datos del usuario en SharedPreferences
   static Future<void> saveUserData(Map<String, dynamic> userData) async {
     final prefs = await SharedPreferences.getInstance();
+    print("Guardando los datos del usuario:");
+    print(jsonEncode(userData));
     await prefs.setString('userData', jsonEncode(userData));
   }
 

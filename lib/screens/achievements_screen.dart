@@ -71,39 +71,47 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                     backgroundImage: NetworkImage('https://picsum.photos/200'),
                   ),
                   SizedBox(width: 16.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfileFormScreen(),
+                  Expanded(
+                    // Esto asegura que el texto se ajuste al espacio disponible
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProfileFormScreen(),
+                              ),
+                            );
+                            if (result == true) {
+                              // Si los datos fueron actualizados, recarga los datos del usuario
+                              _loadUserData();
+                            }
+                          },
+                          child: Text(
+                            "$_firstName $_lastName",
+                            style: TextStyle(
+                              fontSize: 24.0,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                          if (result == true) {
-                            // Si los datos fueron actualizados, recarga los datos del usuario
-                            _loadUserData();
-                          }
-                        },
-                        child: Text(
-                          "$_firstName $_lastName",
-                          style: TextStyle(
-                            fontSize: 24.0,
-                            fontWeight: FontWeight.bold,
+                            overflow: TextOverflow
+                                .ellipsis, // Trunca el texto si es muy largo
+                            maxLines: 1, // Limita el texto a una sola línea
                           ),
                         ),
-                      ),
-                      SizedBox(height: 4.0),
-                      Text(
-                        "@$_username",
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.grey[600],
+                        SizedBox(height: 4.0),
+                        Text(
+                          "@$_username",
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.grey[600],
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),

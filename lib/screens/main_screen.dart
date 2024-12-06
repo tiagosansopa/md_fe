@@ -11,7 +11,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 2; // Start at "Home" (index 2)
+  int _selectedIndex = 0; // Start at "Home" (index 2)
 
   // List of screens corresponding to each icon
   final List<Widget> _screens = [
