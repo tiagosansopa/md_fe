@@ -29,11 +29,13 @@ class _LoginScreenState extends State<LoginScreen> {
           final data = jsonDecode(response.body);
           await AuthService.saveTokens(data['access'], data['refresh']);
 
-          // Obtiene los datos del usuario después del login
+          // Fetch user data after login
           await AuthService.fetchUserData(context);
 
-          Navigator.of(context).pushReplacement(
+          // Navigate to the main screen and remove login from the navigation stack
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => MainScreen()),
+            (Route<dynamic> route) => false, // Remove all previous routes
           );
         } else {
           print(response.statusCode);
@@ -76,37 +78,28 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 40),
               TextFormField(
                 decoration: InputDecoration(
-                  labelText:
-                      'Username', // Replace with 'Username' or other labels
-                  labelStyle:
-                      TextStyle(color: Colors.grey), // Customize label color
-                  hintText: 'Enter your username', // Optional hint
-                  hintStyle: TextStyle(
-                      color: Colors.grey.shade400), // Optional hint styling
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 15, horizontal: 20), // Adjust padding
+                  labelText: 'Username',
+                  labelStyle: TextStyle(color: Colors.grey),
+                  hintText: 'Enter your username',
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide:
-                        BorderSide(color: Colors.grey), // Default border color
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.grey),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.grey.shade300), // Light border color
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.blue, width: 2.0), // Focused border color
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
                   ),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value == null) {
+                  if (value == null || value.isEmpty) {
                     return 'Enter a valid username';
                   }
                   return null;
@@ -118,32 +111,23 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 16),
               TextFormField(
                 decoration: InputDecoration(
-                  labelText:
-                      'Password', // Replace with 'Username' or other labels
-                  labelStyle:
-                      TextStyle(color: Colors.grey), // Customize label color
-                  hintText: 'Enter your Password', // Optional hint
-                  hintStyle: TextStyle(
-                      color: Colors.grey.shade400), // Optional hint styling
-                  contentPadding: EdgeInsets.symmetric(
-                      vertical: 15, horizontal: 20), // Adjust padding
+                  labelText: 'Password',
+                  labelStyle: TextStyle(color: Colors.grey),
+                  hintText: 'Enter your password',
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide:
-                        BorderSide(color: Colors.grey), // Default border color
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.grey),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.grey.shade300), // Light border color
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(10.0), // Rounded corners
-                    borderSide: BorderSide(
-                        color: Colors.blue, width: 2.0), // Focused border color
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
                   ),
                 ),
                 obscureText: true,
@@ -170,12 +154,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(8.0), // Slightly rounded corners
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      vertical: 16.0), // Increase vertical size
-                  minimumSize: Size.fromHeight(50), // Full-width
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  minimumSize: Size.fromHeight(50),
                 ),
                 child: Text('Log In'),
               ),

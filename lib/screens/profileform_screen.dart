@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:matchday_mvp/screens/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../services/auth_service.dart';
@@ -148,7 +149,13 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
           );
 
           await AuthService.fetchUserData(context);
-          Navigator.pop(context);
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    MainScreen()), // Replace with your main screen
+            (route) => false, // Remove all previous routes
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -275,7 +282,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
               DropdownButtonFormField(
                 value: _country,
                 decoration: _inputDecoration('País', 'Seleccione su país'),
-                items: ['', 'Guatemala', 'USA', 'Canada', 'Mexico']
+                items: ['', 'guatemala', 'USA', 'Canada', 'Mexico']
                     .map((country) => DropdownMenuItem(
                           value: country,
                           child: Text(country),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:matchday_mvp/screens/auth/welcome_screen.dart';
-import 'auth_screen.dart'; // Importar la pantalla de autenticación
+import 'package:matchday_mvp/screens/profileform_screen.dart'; // Import the Edit Profile screen
 
 class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: Text('Configuracion'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -15,13 +15,25 @@ class SettingsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
+              leading: Icon(Icons.person, color: Colors.blue),
+              title:
+                  Text('Editar Perfil', style: TextStyle(color: Colors.blue)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileFormScreen()),
+                );
+              },
+            ),
+            Divider(),
+            ListTile(
               leading: Icon(Icons.logout, color: Colors.red),
-              title: Text('Log Out', style: TextStyle(color: Colors.red)),
+              title: Text('Cerrar Sesion', style: TextStyle(color: Colors.red)),
               onTap: () {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => WelcomeScreen()),
-                  (route) => false, // Remueve todas las rutas anteriores
+                  (route) => false, // Removes all previous routes
                 );
               },
             ),

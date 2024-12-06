@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import '../main_screen.dart';
+import 'package:matchday_mvp/screens/profileform_screen.dart';
 import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -41,8 +41,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Obtiene los datos del usuario después del login
           await AuthService.fetchUserData(context);
 
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => MainScreen()),
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => ProfileFormScreen()),
+            (Route<dynamic> route) => false, // Remove all previous routes
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
