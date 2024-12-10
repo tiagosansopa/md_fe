@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       try {
         final response = await AuthService.sendOpenRequest(
-          url: 'https://matchapi.uim.gt/api/auth/register/',
+          url: 'http://localhost:8000/api/auth/register/',
           headers: {'Content-Type': 'application/json'},
           method: 'POST',
           body: {'username': _name, 'email': _email, 'password': _password},
@@ -85,7 +85,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(height: 20),
               TextFormField(
                 decoration: InputDecoration(
-                  labelText: 'Name', // Replace with 'Username' or other labels
+                  labelText:
+                      'Username', // Replace with 'Username' or other labels
                   labelStyle:
                       TextStyle(color: Colors.grey), // Customize label color
                   hintText: 'Enter your Name', // Optional hint

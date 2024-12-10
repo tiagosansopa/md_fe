@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _formKey.currentState!.save();
       try {
         final response = await AuthService.sendOpenRequest(
-          url: 'https://matchapi.uim.gt/api/auth/login/',
+          url: 'http://localhost:8000/api/auth/login/',
           headers: {'Content-Type': 'application/json'},
           method: 'POST',
           body: {'username': _name, 'password': _password},

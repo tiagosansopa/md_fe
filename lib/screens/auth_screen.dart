@@ -103,7 +103,7 @@ class _LogInFormState extends State<LogInForm> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final url = Uri.parse('https://matchapi.uim.gt/api/auth/login/');
+      final url = Uri.parse('http://localhost:8000/api/auth/login/');
       try {
         final response = await http.post(
           url,
@@ -199,7 +199,7 @@ class _RegisterFormState extends State<RegisterForm> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       // Llama al API de registro
-      final url = Uri.parse('https://matchapi.uim.gt/api/auth/register/');
+      final url = Uri.parse('http://localhost:8000/api/auth/register/');
       try {
         final response = await http.post(
           url,

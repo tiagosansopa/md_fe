@@ -46,7 +46,7 @@ class _TabContainerScreenState extends State<TabContainerScreen> {
 
     try {
       final response = await AuthService.sendRequest(
-        url: 'https://matchapi.uim.gt/api/user/$userId/disciplines/',
+        url: 'http://localhost:8000/api/user/$userId/disciplines/',
         method: 'GET',
         context: context,
       );

@@ -32,7 +32,7 @@ class _SearchScreenState extends State<SearchScreen> {
       }
 
       final response = await AuthService.sendRequest(
-        url: 'https://matchapi.uim.gt/api/user/$userId/disciplines/',
+        url: 'http://localhost:8000/api/user/$userId/disciplines/',
         method: 'GET',
         context: context,
       );
@@ -73,7 +73,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _fetchMatches() async {
     try {
       final response = await AuthService.sendRequest(
-        url: 'https://matchapi.uim.gt/api/matches/',
+        url: 'http://localhost:8000/api/matches/',
         method: 'GET',
         context: context,
       );
@@ -89,6 +89,8 @@ class _SearchScreenState extends State<SearchScreen> {
               'dateTime': match['date_time'] ?? '',
               'playerCount': match['player_count'] ?? 0,
               'formation': match['formation'] ?? '',
+              'team_1_players': match['team_1_players'] ?? 0,
+              'team_2_players': match['team_2_players'] ?? 0,
             };
           }).toList();
           _filteredMatches = _matches;
@@ -166,7 +168,7 @@ class _SearchScreenState extends State<SearchScreen> {
         appBar: AppBar(title: Text("Partidas Disponibles")),
         body: Center(
           child: Text(
-            "You dont have any disciplines yet",
+            "You don't have any disciplines yet",
             style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
@@ -226,6 +228,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         itemCount: _filteredMatches.length,
                         itemBuilder: (context, index) {
                           final match = _filteredMatches[index];
+
                           return Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16.0, vertical: 8.0),
@@ -244,7 +247,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       _teamWidget(
-                                          'Equipo A', match['playerCount']),
+                                          'Equipo A',
+                                          match['team_1_players'],
+                                          match['playerCount']),
                                       Column(
                                         children: [
                                           Text(
@@ -262,7 +267,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                         ],
                                       ),
                                       _teamWidget(
-                                          'Equipo B', match['playerCount']),
+                                          'Equipo B',
+                                          match['team_2_players'],
+                                          match['playerCount']),
                                     ],
                                   ),
                                 ),
@@ -282,7 +289,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _teamWidget(String teamName, int playerCount) {
+  Widget _teamWidget(String teamName, int joinedPlayers, int totalSlots) {
     return Column(
       children: [
         Icon(Icons.shield, size: 48.0, color: Colors.black54),
@@ -293,7 +300,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         SizedBox(height: 4.0),
         Text(
-          '$playerCount/7',
+          '$joinedPlayers/$totalSlots',
           style: TextStyle(fontSize: 12.0, color: Colors.black54),
         ),
       ],

@@ -43,7 +43,7 @@ class _AddDisciplineScreenState extends State<AddDisciplineScreen> {
   Future<void> _fetchUserDisciplines() async {
     try {
       final response = await AuthService.sendRequest(
-        url: 'https://matchapi.uim.gt/api/user/${widget.userId}/disciplines/',
+        url: 'http://localhost:8000/api/user/${widget.userId}/disciplines/',
         method: 'GET',
         context: context,
       );
@@ -113,7 +113,7 @@ class _AddDisciplineScreenState extends State<AddDisciplineScreen> {
       // Submit discipline data
       try {
         final response = await AuthService.sendRequest(
-          url: 'https://matchapi.uim.gt/api/user/${widget.userId}/disciplines/',
+          url: 'http://localhost:8000/api/user/${widget.userId}/disciplines/',
           method: 'POST',
           body: disciplineData,
           headers: {'Content-Type': 'application/json'},

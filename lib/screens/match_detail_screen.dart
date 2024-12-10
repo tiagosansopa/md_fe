@@ -19,15 +19,16 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   bool _isLoading = true;
   int _playersJoined = 0;
   int? _selectedSlot;
+  int _activeTeam = 1; // Tracks the active team (1 or 2)
 
   final Map<int, List<List<Offset>>> _alignments = {
     5: [
       [
-        Offset(0.1, 0.25),
-        Offset(0.3, 0.17),
-        Offset(0.3, 0.35),
-        Offset(0.6, 0.17),
-        Offset(0.6, 0.35)
+        Offset(0.3, 1.25),
+        Offset(1.3, 0.67),
+        Offset(1.3, 1.85),
+        Offset(2.6, 0.67),
+        Offset(2.6, 1.85)
       ],
       [
         Offset(0.1, 0.3),
@@ -85,7 +86,7 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   Future<void> _fetchMatchDetails() async {
     try {
       final response = await AuthService.sendRequest(
-        url: 'https://matchapi.uim.gt/api/matches/${widget.matchId}',
+        url: 'http://localhost:8000/api/matches/${widget.matchId}',
         method: 'GET',
         context: context,
       );
@@ -94,12 +95,14 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
           _matchDetails = jsonDecode(response.body);
         });
       } else {
+        print('Error:${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Error loading match details: ${response.body}')),
         );
       }
     } catch (error) {
+      print('Error: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $error')),
       );
@@ -109,18 +112,20 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   Future<void> _fetchPlayerSlots() async {
     try {
       final response = await AuthService.sendRequest(
-        url:
-            'https://matchapi.uim.gt/api/player_slots/match/${widget.matchId}/',
+        url: 'http://localhost:8000/api/player_slots/match/${widget.matchId}/',
         method: 'GET',
         context: context,
       );
       if (response.statusCode == 200) {
+        final slots =
+            List<Map<String, dynamic>>.from(jsonDecode(response.body));
         setState(() {
-          _playerSlots =
-              List<Map<String, dynamic>>.from(jsonDecode(response.body));
-          _playersJoined = _playerSlots
-              .where((slot) => slot['player_username'] != null)
-              .length;
+          _playerSlots = slots;
+          final teamA = slots.where(
+              (slot) => slot['team'] == 1 && slot['player_username'] != null);
+          final teamB = slots.where(
+              (slot) => slot['team'] == 2 && slot['player_username'] != null);
+          _playersJoined = teamA.length + teamB.length;
           _isLoading = false;
         });
       } else {
@@ -129,6 +134,7 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
         );
       }
     } catch (error) {
+      print('Error: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $error')),
       );
@@ -151,10 +157,13 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
 
     try {
       final response = await AuthService.sendRequest(
-        url: 'https://matchapi.uim.gt/api/player_slots/${_selectedSlot}/',
+        url: 'http://localhost:8000/api/player_slots/$_selectedSlot/',
         method: 'PATCH',
         headers: {'Content-Type': 'application/json'},
-        body: {'match': widget.matchId},
+        body: {
+          'match': widget.matchId,
+          'team': _activeTeam,
+        },
         context: context,
       );
 
@@ -179,82 +188,173 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
   }
 
   Widget _buildPlayerList() {
-    final joinedPlayers =
-        _playerSlots.where((slot) => slot['player_username'] != null).toList();
+    final teamAPlayers = _playerSlots
+        .where((slot) => slot['team'] == 1 && slot['player_username'] != null)
+        .toList();
+    final teamBPlayers = _playerSlots
+        .where((slot) => slot['team'] == 2 && slot['player_username'] != null)
+        .toList();
 
-    if (joinedPlayers.isEmpty) {
-      return Text('No players have joined yet.',
-          style: TextStyle(fontSize: 16));
-    }
-
-    return ListView.builder(
-      itemCount: joinedPlayers.length,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        final player = joinedPlayers[index];
-        return ListTile(
-          leading: CircleAvatar(
-            radius: 10.0,
-            backgroundImage: NetworkImage('https://picsum.photos/200'),
-          ),
-          title: Text(player['player_username'] ?? 'Unknown'),
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Equipo A:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        teamAPlayers.isEmpty
+            ? Text('No Hay jugadores unidos', style: TextStyle(fontSize: 14))
+            : ListView.builder(
+                itemCount: teamAPlayers.length,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final player = teamAPlayers[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      radius: 10.0,
+                      backgroundImage:
+                          NetworkImage('https://picsum.photos/200'),
+                    ),
+                    title: Text(player['player_username'] ?? 'Unknown'),
+                  );
+                },
+              ),
+        SizedBox(height: 8),
+        Text('Equipo B:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        teamBPlayers.isEmpty
+            ? Text('No Hay jugadores unidos aun',
+                style: TextStyle(fontSize: 14))
+            : ListView.builder(
+                itemCount: teamBPlayers.length,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final player = teamBPlayers[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      radius: 10.0,
+                      backgroundImage:
+                          NetworkImage('https://picsum.photos/200'),
+                    ),
+                    title: Text(player['player_username'] ?? 'Unknown'),
+                  );
+                },
+              ),
+      ],
     );
   }
 
   Widget _buildFieldMap() {
-    final playerCount = _matchDetails?['player_count'] ?? 0;
-    final alignment = int.tryParse(_matchDetails?['formation'] ?? '1') ?? 1;
+    final activeTeamSlots =
+        _playerSlots.where((slot) => slot['team'] == _activeTeam).toList();
+    final playerCount = activeTeamSlots.length;
+
+    final alignmentIndex =
+        int.tryParse(_matchDetails?['formation'] ?? '1') ?? 1;
 
     final alignmentsForPlayers = _alignments[playerCount] ?? [];
     final positions = alignmentsForPlayers.isNotEmpty &&
-            alignment <= alignmentsForPlayers.length
-        ? alignmentsForPlayers[alignment - 1]
+            alignmentIndex <= alignmentsForPlayers.length
+        ? alignmentsForPlayers[alignmentIndex - 1]
         : [];
 
-    return Stack(
+    return Column(
       children: [
-        Center(
-          child: Image.asset('assets/soccer_field.png', fit: BoxFit.fitWidth),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _activeTeam = 1;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    _activeTeam == 1 ? Colors.blue : Colors.grey.shade300,
+              ),
+              child: Text('Equipo A'),
+            ),
+            SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _activeTeam = 2;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    _activeTeam == 2 ? Colors.red : Colors.grey.shade300,
+              ),
+              child: Text('Equipo B'),
+            ),
+          ],
         ),
-        for (int i = 0; i < positions.length; i++)
-          Positioned(
-            top: positions[i].dy * MediaQuery.of(context).size.height * 0.8,
-            left: positions[i].dx * MediaQuery.of(context).size.width * 0.8,
-            child: GestureDetector(
-              onTap: _playerSlots[i]['player_username'] == null
-                  ? () => _selectSlot(_playerSlots[i]['id'])
-                  : null,
+        SizedBox(height: 10),
+        Center(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: AspectRatio(
+              aspectRatio: 4 / 3,
               child: Container(
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _playerSlots[i]['id'] == _selectedSlot
-                      ? Colors.green
-                      : (_playerSlots[i]['player_username'] != null
-                          ? Colors.grey
-                          : Colors.white),
-                  border: Border.all(
-                    color: _playerSlots[i]['id'] == _selectedSlot
-                        ? Colors.greenAccent
-                        : Colors.black,
-                    width: 2,
+                  image: DecorationImage(
+                    image: AssetImage('assets/soccer_field.png'),
+                    fit: BoxFit.cover,
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    Icons.person_pin_circle,
-                    size: 30,
-                    color: _playerSlots[i]['player_username'] == null
-                        ? Colors.black
-                        : Colors.grey.shade800,
-                  ),
+                child: Stack(
+                  children: [
+                    for (int i = 0; i < positions.length; i++)
+                      Positioned(
+                        top: positions[i].dy * 100,
+                        left: positions[i].dx * 100,
+                        child: GestureDetector(
+                          onTap: activeTeamSlots.length > i &&
+                                  activeTeamSlots[i]['player_username'] == null
+                              ? () => _selectSlot(activeTeamSlots[i]['id'])
+                              : null,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: activeTeamSlots.length > i &&
+                                      activeTeamSlots[i]['id'] == _selectedSlot
+                                  ? Colors.green
+                                  : (activeTeamSlots.length > i &&
+                                          activeTeamSlots[i]
+                                                  ['player_username'] !=
+                                              null
+                                      ? Colors.grey
+                                      : Colors.white),
+                              border: Border.all(
+                                color: activeTeamSlots.length > i &&
+                                        activeTeamSlots[i]['id'] ==
+                                            _selectedSlot
+                                    ? Colors.greenAccent
+                                    : Colors.black,
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.person,
+                              size: 20,
+                              color: activeTeamSlots.length > i &&
+                                      activeTeamSlots[i]['player_username'] ==
+                                          null
+                                  ? Colors.black
+                                  : Colors.grey.shade800,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
           ),
+        ),
       ],
     );
   }
@@ -270,57 +370,61 @@ class _MatchDetailScreenState extends State<MatchDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('Detalles')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Lugar: ${_matchDetails?['place'] ?? 'Unknown'}',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text(
-                        'Fecha & Hora: ${DateFormat('EEE, MMM d yyyy h:mm a').format(DateTime.parse(_matchDetails?['date_time'] ?? DateTime.now().toIso8601String()))}',
-                        style: TextStyle(fontSize: 16)),
-                    Text(
-                        'Jugadores: $_playersJoined/${_matchDetails?['player_count'] ?? 0}',
-                        style: TextStyle(fontSize: 16)),
-                  ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Lugar: ${_matchDetails?['place'] ?? 'Unknown'}',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text(
+                          'Fecha & Hora: ${DateFormat('EEE, MMM d yyyy h:mm a').format(DateTime.parse(_matchDetails?['date_time'] ?? DateTime.now().toIso8601String()))}',
+                          style: TextStyle(fontSize: 16)),
+                      Text(
+                          'Jugadores: $_playersJoined/${_matchDetails?['player_count'] * 2 ?? 0}',
+                          style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: _assignPlayerToSlot,
-                  child: Text(_selectedSlot == null
-                      ? 'Unirse al partido'
-                      : 'Confirmar Posicion'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatScreen(match: _matchDetails!),
-                      ),
-                    );
-                  },
-                  child: Text('Chat'),
-                ),
-              ],
-            ),
-            Expanded(child: _buildFieldMap()),
-            SizedBox(height: 2),
-            Text('Jugadores Unidos:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            _buildPlayerList(),
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _assignPlayerToSlot,
+                    child: Text(_selectedSlot == null
+                        ? 'Seleccione una posicion'
+                        : 'Confirmar Posicion'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ChatScreen(match: _matchDetails!),
+                        ),
+                      );
+                    },
+                    child: Text('Chat'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              _buildFieldMap(),
+              SizedBox(height: 10),
+              Text('Jugadores Unidos:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              _buildPlayerList(),
+            ],
+          ),
         ),
       ),
     );

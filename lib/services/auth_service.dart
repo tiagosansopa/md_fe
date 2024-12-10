@@ -4,9 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
 class AuthService {
-  static const String baseUrl = 'https://matchapi.uim.gt/api/auth';
+  static const String baseUrl = 'http://localhost:8000/api/auth';
   static const String refreshUrl = '$baseUrl/token/refresh/';
-  static const String userUrl = 'https://matchapi.uim.gt/api/users/me/';
+  static const String userUrl = 'http://localhost:8000/api/users/me/';
 
   // Guarda tokens en SharedPreferences
   static Future<void> saveTokens(String access, String refresh) async {

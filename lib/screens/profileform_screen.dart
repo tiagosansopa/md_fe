@@ -136,7 +136,7 @@ class _ProfileFormScreenState extends State<ProfileFormScreen> {
 
       try {
         final response = await AuthService.sendRequest(
-          url: 'https://matchapi.uim.gt/api/users/$_userId/',
+          url: 'http://localhost:8000/api/users/$_userId/',
           method: 'PATCH',
           body: userData,
           headers: {'Content-Type': 'application/json'},

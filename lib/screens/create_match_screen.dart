@@ -110,7 +110,7 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
 
     try {
       final response = await AuthService.sendRequest(
-        url: 'https://matchapi.uim.gt/api/matches/',
+        url: 'http://localhost:8000/api/matches/',
         method: 'POST',
         body: matchData,
         headers: {
@@ -205,7 +205,7 @@ class _CreateMatchScreenState extends State<CreateMatchScreen> {
                 Spacer(),
                 DropdownButton<int>(
                   value: _playerCount,
-                  items: [5, 7, 11]
+                  items: [5, 7]
                       .map((count) => DropdownMenuItem<int>(
                             value: count,
                             child: Text('$count'),
