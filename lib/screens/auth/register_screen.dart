@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       try {
         final response = await AuthService.sendOpenRequest(
-          url: 'http://localhost:8000/api/auth/register/',
+          url: 'https://matchapi.uim.gt/api/auth/register/',
           headers: {'Content-Type': 'application/json'},
           method: 'POST',
           body: {'username': _name, 'email': _email, 'password': _password},
@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               Center(
                 child: Image.asset(
-                  'assets/images/logo.png',
+                  'assets/images/logo.jpeg',
                   height: 50,
                   width: 50,
                 ),

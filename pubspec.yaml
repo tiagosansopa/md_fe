@@ -62,6 +62,7 @@ flutter:
 
   assets:
     - assets/images/logo.png
+    - assets/images/logo.jpeg
     - assets/soccer_field.png
     - assets/soccer_field_2.png
   # To add assets to your application, add an assets section, like this:

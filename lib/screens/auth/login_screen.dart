@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _formKey.currentState!.save();
       try {
         final response = await AuthService.sendOpenRequest(
-          url: 'http://localhost:8000/api/auth/login/',
+          url: 'https://matchapi.uim.gt/api/auth/login/',
           headers: {'Content-Type': 'application/json'},
           method: 'POST',
           body: {'username': _name, 'password': _password},
@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Center(
                 child: Image.asset(
-                  'assets/images/logo.png',
+                  'assets/images/logo.jpeg',
                   height: 50,
                   width: 50,
                 ),
